@@ -8,6 +8,11 @@ public class AuthorizationJson
     public string country { get; set; }
     public Multifactor? multifactor { get; set; }
     public string? securityProfile { get; set; }
+    // New style token fields returned when RSO no longer redirects with a URI
+    public string? access_token { get; set; }
+    public string? id_token { get; set; }
+    public string? token_type { get; set; }
+    public int? expires_in { get; set; }
     
     public class Parameters
     {

@@ -38,8 +38,6 @@ public class Authentication : RequestBase
     private const string gameEntitlementUrl =
         "https://clientconfig.rpg.riotgames.com/api/v1/config/player?namespace=keystone.products.valorant.patchlines";
 
-    private const string cookieReauth =
-        "https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&nonce=1";
     #endregion
 
     #region Authentication Objects
@@ -165,7 +163,7 @@ public class Authentication : RequestBase
             throw new ValNetException("Failed Login, please check credentials and try again.", authResponse.Status, authResponse.Content);
 
         var authObj = authResponse.Data;
-        if (authObj is null || authObj.response is null)
+        if (authObj is null)
             throw new Exception("Could not authenticate properly.");
 
         foreach (var (name, value) in authResponse.Cookies)
@@ -173,7 +171,19 @@ public class Authentication : RequestBase
             _user.UserClient.CookieContainer.Add(new Cookie(name, value, "/", "riotgames.com"));
         }
 
-        ParseWebToken(authObj.response.parameters.uri);
+        if (authObj.response?.parameters?.uri is not null)
+        {
+            ParseWebToken(authObj.response.parameters.uri);
+        }
+        else if (!string.IsNullOrEmpty(authObj.access_token) && !string.IsNullOrEmpty(authObj.id_token))
+        {
+            _user.tokenData.access = authObj.access_token;
+            _user.tokenData.idToken = authObj.id_token;
+        }
+        else
+        {
+            throw new Exception("Could not authenticate properly.");
+        }
         _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
 
         _user.tokenData.entitle = await GetEntitlementTokenCurl();
@@ -283,7 +293,19 @@ public class Authentication : RequestBase
     
     private async Task<AuthenticationStatus> CompleteAuthCurl(AuthorizationJson authObj)
     {
-        ParseWebToken(authObj.response.parameters.uri);
+        if (authObj.response?.parameters?.uri is not null)
+        {
+            ParseWebToken(authObj.response.parameters.uri);
+        }
+        else if (!string.IsNullOrEmpty(authObj.access_token) && !string.IsNullOrEmpty(authObj.id_token))
+        {
+            _user.tokenData.access = authObj.access_token;
+            _user.tokenData.idToken = authObj.id_token;
+        }
+        else
+        {
+            throw new Exception("Could not retrieve tokens from authorization response.");
+        }
         _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
 
         _user.tokenData.entitle = await GetEntitlementTokenCurl();
@@ -449,7 +471,19 @@ public class Authentication : RequestBase
     
     private async Task<AuthenticationStatus> CompleteAuth(AuthorizationJson authObj)
     {
-        ParseWebToken(authObj.response.parameters.uri);
+        if (authObj.response?.parameters?.uri is not null)
+        {
+            ParseWebToken(authObj.response.parameters.uri);
+        }
+        else if (!string.IsNullOrEmpty(authObj.access_token) && !string.IsNullOrEmpty(authObj.id_token))
+        {
+            _user.tokenData.access = authObj.access_token;
+            _user.tokenData.idToken = authObj.id_token;
+        }
+        else
+        {
+            throw new Exception("Could not retrieve tokens from authorization response.");
+        }
 
         _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
         _user.AuthClient.AddHeaderToClient("Authorization", $"Bearer {_user.tokenData.access}");
@@ -546,7 +580,7 @@ public class Authentication : RequestBase
             throw new ValNetException("Failed Login, please check credentials and try again.", authResponse.StatusCode, message);
 
         var authObj = JsonSerializer.Deserialize<AuthorizationJson>(await authResponse.Content.ReadAsStringAsync());
-        if (authObj is null || authObj.response is null)
+        if (authObj is null)
             throw new Exception("Could not authenticate properly.");
 
         foreach (Cookie c in _user.AuthClient.GetClientCookies.GetAllCookies())
@@ -554,9 +588,21 @@ public class Authentication : RequestBase
             _user.UserClient.CookieContainer.Add(new Cookie( c.Name, c.Value, "/", c.Domain));
         }
 
-        ParseWebToken(authObj.response.parameters.uri);
+        if (authObj.response?.parameters?.uri is not null)
+        {
+            ParseWebToken(authObj.response.parameters.uri);
+        }
+        else if (!string.IsNullOrEmpty(authObj.access_token) && !string.IsNullOrEmpty(authObj.id_token))
+        {
+            _user.tokenData.access = authObj.access_token;
+            _user.tokenData.idToken = authObj.id_token;
+        }
+        else
+        {
+            throw new Exception("Could not authenticate properly.");
+        }
         _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
-        _user.AuthClient.AddHeaderToClient("Authorization", $"Bearer {_user.tokenData.access}");;
+        _user.AuthClient.AddHeaderToClient("Authorization", $"Bearer {_user.tokenData.access}");
         
         _user.tokenData.entitle = await GetEntitlementToken();
         
