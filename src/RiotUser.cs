@@ -13,7 +13,7 @@ namespace ValNet;
 /// <summary>
 /// Default Account Object.
 /// </summary>
-public class RiotUser
+public partial class RiotUser
 {
     internal RiotLoginData loginData;
     public RiotRegion UserRegion = RiotRegion.UNKNOWN;

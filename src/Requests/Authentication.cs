@@ -17,7 +17,7 @@ using WebSocketSharp;
 
 namespace ValNet.Requests;
 
-public class Authentication : RequestBase
+public partial class Authentication : RequestBase
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
     private string _rsoUserAgent => string.Format(_user.UserAgentFormat, "rso-auth");
