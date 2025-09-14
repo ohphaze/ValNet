@@ -124,7 +124,8 @@ public partial class RiotUser
         System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         var optionsClient = new RestClientOptions()
         {
-            UserAgent = string.Format(UserAgentFormat, "rso-auth")
+            UserAgent = string.Format(UserAgentFormat, "rso-auth"),
+            RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true
         };
         
         AuthClient = new RequestClient();

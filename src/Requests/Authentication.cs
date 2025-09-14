@@ -195,10 +195,8 @@ public partial class Authentication : RequestBase
         {
             throw new Exception("Could not authenticate properly.");
         }
-        _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
-
+        // Headers are set per-request in RequestBase; avoid duplicate default headers here
         _user.tokenData.entitle = await GetEntitlementTokenCurl();
-        _user.UserClient.AddDefaultHeader("X-Riot-Entitlements-JWT", _user.tokenData.entitle);
 
         _user.UserData = await GetUserDataCurl();
 
@@ -318,10 +316,8 @@ public partial class Authentication : RequestBase
         {
             throw new Exception("Could not retrieve tokens from authorization response.");
         }
-        _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
-
+        // Headers are set per-request in RequestBase to avoid duplication
         _user.tokenData.entitle = await GetEntitlementTokenCurl();
-        _user.UserClient.AddDefaultHeader("X-Riot-Entitlements-JWT", _user.tokenData.entitle);
 
         _user.UserData = await GetUserDataCurl();
         _user.UserRegion = await GetUserRegion();
@@ -501,11 +497,9 @@ public async Task<AuthenticationResult> AuthenticateTwoFactorCode(string code)
             throw new Exception("Could not retrieve tokens from authorization response.");
         }
 
-        _user.UserClient.AddDefaultHeader("Authorization", $"Bearer {_user.tokenData.access}");
+        // Avoid adding duplicate default headers; RequestBase injects headers per request
         _user.AuthClient.AddHeaderToClient("Authorization", $"Bearer {_user.tokenData.access}");
-        
         _user.tokenData.entitle = await GetEntitlementToken();
-        _user.UserClient.AddDefaultHeader("X-Riot-Entitlements-JWT", _user.tokenData.entitle);
         _user.AuthClient.AddHeaderToClient("X-Riot-Entitlements-JWT", _user.tokenData.entitle);
         
         _user.UserData = await GetUserData();

@@ -18,7 +18,7 @@ public class Inventory : RequestBase
         var resp = await RiotPdRequest($"/personalization/v2/players/{_user.UserData.sub}/playerloadout", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Store");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Inventory", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         CurrentInventory = JsonSerializer.Deserialize<PlayerInventory>(resp.content.ToString());
 

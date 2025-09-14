@@ -18,7 +18,7 @@ public class Store : RequestBase
         var resp = await RiotPdRequest($"/store/v2/storefront/{_user.UserData.sub}", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Store");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Store", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         PlayerStore = JsonSerializer.Deserialize<PlayerStore>(resp.content.ToString());
 
@@ -52,7 +52,7 @@ public class Store : RequestBase
         var resp = await RiotPdRequest("/store/v1/offers/", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Store Offers");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Store Offers", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         try
         {
@@ -69,7 +69,7 @@ public class Store : RequestBase
         var resp = await RiotPdRequest($"/store/v1/wallet/{_user.UserData.sub}", Method.Get);
         
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Balance");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Balance", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         
         return JsonSerializer.Deserialize<PlayerWallet>(resp.content.ToString());

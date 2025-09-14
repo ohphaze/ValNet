@@ -23,7 +23,7 @@ public class Contracts : RequestBase
         var resp = await RiotPdRequest($"/contracts/v1/contracts/{_user.UserData.sub}", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Battlepass");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Battlepass", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         var des = JsonSerializer.Deserialize<ContactsFetchObj>(resp.content.ToString());
 
@@ -44,7 +44,7 @@ public class Contracts : RequestBase
         var resp = await RiotPdRequest($"/contracts/v1/contracts/{_user.UserData.sub}", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Contacts");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Contacts", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
         var des = JsonSerializer.Deserialize<ContactsFetchObj>(resp.content.ToString());
 
@@ -65,8 +65,10 @@ public class Contracts : RequestBase
         var resp = await RiotPdRequest($"/contracts/v1/contracts/{_user.UserData.sub}", Method.Get);
 
         if (!resp.isSucc)
-            throw new Exception("Failed to get Player Contacts");
+            throw new ValNet.Objects.Exceptions.RequestException("Failed to get Player Contacts", (System.Net.HttpStatusCode)resp.StatusCode, resp.content?.ToString() ?? string.Empty);
 
+        if (resp.content is null)
+            throw new ValNet.Objects.Exceptions.RequestException("Empty response for Player Contacts", (System.Net.HttpStatusCode)resp.StatusCode, string.Empty);
         var data = JsonSerializer.Deserialize<ValNet.Objects.Contacts.ContactsFetchObj>(resp.content.ToString());
 
         if (data != null)
