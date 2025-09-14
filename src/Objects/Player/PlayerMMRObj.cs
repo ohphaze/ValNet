@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace ValNet.Objects.Player;
 
@@ -11,13 +11,13 @@ public class PlayerMMRObj
     public bool bNewPlayerExperienceFinished { get; set; }
     
     [JsonPropertyName("QueueSkills")]
-    public QueueSkills QueueData { get; set; }
+    public QueueSkillsData QueueSkills { get; set; }
     public CompetitiveUpdate LatestCompetitiveUpdate { get; set; }
     public bool IsLeaderboardAnonymized { get; set; }
     public bool IsActRankBadgeHidden { get; set; }
     
     
-    public class QueueSkills
+    public class QueueSkillsData
     {
         public Competitive competitive { get; set; }
         public Custom custom { get; set; }
@@ -34,7 +34,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Deathmatch
@@ -42,7 +42,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Ggteam
@@ -50,7 +50,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Newmap
@@ -58,7 +58,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Onefa
@@ -66,7 +66,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Seeding
@@ -74,7 +74,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class Spikerush
@@ -82,7 +82,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
     
     public class Unrated
@@ -90,7 +90,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
     
     public class Competitive
@@ -98,7 +98,7 @@ public class PlayerMMRObj
         public int TotalGamesNeededForRating { get; set; }
         public int TotalGamesNeededForLeaderboard { get; set; }
         public int CurrentSeasonGamesNeededForRating { get; set; }
-        public SeasonalInfoBySeasonID SeasonalInfoBySeasonID { get; set; }
+        public System.Collections.Generic.Dictionary<string, ActInformation> SeasonalInfoBySeasonID { get; set; }
     }
 
     public class ActInformation
@@ -118,29 +118,7 @@ public class PlayerMMRObj
     }
     
     
-    public class SeasonalInfoBySeasonID
-    {
-        [JsonPropertyName("0530b9c4-4980-f2ee-df5d-09864cd00542")]
-        public ActInformation _0530b9c44980F2eeDf5d09864cd00542 { get; set; }
-
-        [JsonPropertyName("46ea6166-4573-1128-9cea-60a15640059b")]
-        public ActInformation _46ea6166457311289cea60a15640059b { get; set; }
-
-        [JsonPropertyName("4cb622e1-4244-6da3-7276-8daaf1c01be2")]
-        public ActInformation _4cb622e142446da372768daaf1c01be2 { get; set; }
-
-        [JsonPropertyName("52e9749a-429b-7060-99fe-4595426a0cf7")]
-        public ActInformation _52e9749a429b706099fe4595426a0cf7 { get; set; }
-
-        [JsonPropertyName("97b6e739-44cc-ffa7-49ad-398ba502ceb0")]
-        public ActInformation _97b6e73944ccFfa749ad398ba502ceb0 { get; set; }
-
-        [JsonPropertyName("a16955a5-4ad0-f761-5e9e-389df1c892fb")]
-        public ActInformation A16955a54ad0F7615e9e389df1c892fb { get; set; }
-
-        [JsonPropertyName("ab57ef51-4e59-da91-cc8d-51a5a2b9b8ff")]
-        public ActInformation Ab57ef514e59Da91Cc8d51a5a2b9b8ff { get; set; }
-    }
+    
     }
 }
 
@@ -161,3 +139,5 @@ public class CompetitiveUpdate
     public string CompetitiveMovement { get; set; }
     public int AFKPenalty { get; set; }
 }
+
+

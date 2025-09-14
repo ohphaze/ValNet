@@ -1,6 +1,13 @@
-﻿namespace ValNet.Objects;
+namespace ValNet.Objects;
 
-public enum RiotRegion
+internal enum RiotRegion
 {
-    UNKNOWN,NA,EU,BR,AP,LATAM,KR
+    UNKNOWN,
+    NA,
+    EU,
+    BR,
+    AP,
+    LATAM,
+    KR
 }
+

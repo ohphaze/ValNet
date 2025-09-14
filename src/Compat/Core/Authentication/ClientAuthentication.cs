@@ -32,10 +32,47 @@ public class ClientAuthentication
     }
 
     // Some consumers used to call this method here
-    public async Task ReAuthWithCookies()
+    public async Task<ValNet.Objects.Authentication.AuthenticationResult> ReAuthWithCookies()
     {
         // Prefer curl-based flow when available for parity with older behavior
-        await _user.Authentication.AuthenticateWithCookiesCurl();
+        return await _user.Authentication.AuthenticateWithCookiesCurl();
+    }
+
+    // Compat method expected by Assist to seed cookies into AuthClient
+    public void SaveCookies(Dictionary<string, Cookie> cookieContainer)
+    {
+        if (cookieContainer == null) return;
+        foreach (var kv in cookieContainer)
+        {
+            var c = kv.Value;
+            var domain = string.IsNullOrWhiteSpace(c.Domain) ? ".riotgames.com" : c.Domain;
+            var path = string.IsNullOrWhiteSpace(c.Path) ? "/" : c.Path;
+            try
+            {
+                _user.AuthClient.CookieContainer.Add(new Cookie(c.Name, c.Value, path, domain)
+                {
+                    Secure = c.Secure,
+                    HttpOnly = c.HttpOnly,
+                    Expires = c.Expires
+                });
+            }
+            catch { }
+        }
+    }
+
+    // Compat: expose cookies captured by AuthClient
+    public IEnumerable<Cookie> ClientCookies
+    {
+        get
+        {
+            try
+            {
+                return _user.AuthClient.GetClientCookies.GetAllCookies();
+            }
+            catch
+            {
+                return Array.Empty<Cookie>();
+            }
+        }
     }
 }
-

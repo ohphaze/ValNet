@@ -16,7 +16,7 @@ namespace ValNet;
 public partial class RiotUser
 {
     internal RiotLoginData loginData;
-    public RiotRegion UserRegion = RiotRegion.UNKNOWN;
+    internal RiotRegion UserRegion = RiotRegion.UNKNOWN;
     public RiotUrl _riotUrl = new();
     public RiotTokens tokenData = new();
     public RiotUserData? UserData;
@@ -58,6 +58,7 @@ public partial class RiotUser
     /// Class used to interact with Player's Store
     /// </summary>
     public Store Store;
+    public DisplayNameService DisplayNameService;
 
     /// <summary>
     /// Class used to interact with Player's Inventory
@@ -75,6 +76,9 @@ public partial class RiotUser
     public Contracts Contracts;
 
     public Player Player;
+    public Pregame Pregame;
+    public CoreGame CoreGame;
+    public Presence Presence;
 
     /// <summary>
     /// Returns true if player is in game.
@@ -100,7 +104,7 @@ public partial class RiotUser
         UserSetup();
     }
 
-    public RiotUser(RiotLoginData pLoginData, RiotRegion pRegion)
+    internal RiotUser(RiotLoginData pLoginData, RiotRegion pRegion)
     {
         loginData = pLoginData; // Set Logindata instance Variable to value of parameter logindata
 
@@ -136,6 +140,10 @@ public partial class RiotUser
         Party = new Party(this);
         Contracts = new Contracts(this);
         Player = new Player(this);
+        DisplayNameService = new DisplayNameService(this);
+        Pregame = new Pregame(this);
+        CoreGame = new CoreGame(this);
+        Presence = new Presence(this);
     }
 
 

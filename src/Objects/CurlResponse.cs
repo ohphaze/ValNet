@@ -53,6 +53,9 @@ public class CurlResponse
 
     public void Callback(string? line)
     {
+        if (line is null)
+            return;
+
         if (_data)
         {
             if (Content is not null)
@@ -94,15 +97,38 @@ public class CurlResponse
             return;
         }
 
+        // Expect an HTTP status line like: HTTP/2 200 OK
+        if (!line.StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase))
+            return;
+
         var slashIndex = line.IndexOf('/');
         var spaceIndex = line.IndexOf(' ', slashIndex + 1);
+        if (slashIndex < 0 || spaceIndex < 0)
+            return;
+
         var span = line.AsSpan();
-        HttpVersion = Version.Parse(span.Slice(slashIndex + 1, spaceIndex - (slashIndex + 1)));
+        var verSpan = span.Slice(slashIndex + 1, spaceIndex - (slashIndex + 1));
+        try
+        {
+            var verStr = verSpan.ToString();
+            if (verStr == "2") verStr = "2.0";
+            HttpVersion = Version.Parse(verStr);
+        }
+        catch
+        {
+            HttpVersion = new Version(1, 1);
+        }
 
         var nextSpaceIndex = line.IndexOf(' ', spaceIndex + 1);
-        Status = (HttpStatusCode)int.Parse(span.Slice(spaceIndex + 1, nextSpaceIndex - (spaceIndex + 1)));
+        if (nextSpaceIndex < 0)
+            return;
 
-        StatusDescription = line[(nextSpaceIndex + 1)..];
+        if (int.TryParse(span.Slice(spaceIndex + 1, nextSpaceIndex - (spaceIndex + 1)), out var code))
+            Status = (HttpStatusCode)code;
+        else
+            Status = 0;
+
+        StatusDescription = nextSpaceIndex + 1 < line.Length ? line[(nextSpaceIndex + 1)..] : string.Empty;
 
         _headers = true;
     }

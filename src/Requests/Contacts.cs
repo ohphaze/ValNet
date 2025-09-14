@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using RestSharp;
 using ValNet.Objects.Contacts;
 
@@ -60,17 +60,59 @@ public class Contracts : RequestBase
     /// </summary>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<ContactsFetchObj> GetAllContracts()
+    public async Task<ValNet.Objects.Contracts.ContactsFetchObj> GetAllContracts()
     {
         var resp = await RiotPdRequest($"/contracts/v1/contracts/{_user.UserData.sub}", Method.Get);
 
         if (!resp.isSucc)
             throw new Exception("Failed to get Player Contacts");
 
-        var data = JsonSerializer.Deserialize<ContactsFetchObj>(resp.content.ToString());
+        var data = JsonSerializer.Deserialize<ValNet.Objects.Contacts.ContactsFetchObj>(resp.content.ToString());
 
         if (data != null)
-            return data;
+        {
+            // Map to compat Contracts namespace type
+            var mapped = new ValNet.Objects.Contracts.ContactsFetchObj
+            {
+                Missions = data.Missions?.Select(m => new ValNet.Objects.Contracts.ContactsFetchObj.Mission
+                {
+                    ID = m.ID,
+                    ExpirationTime = m.ExpirationTime,
+                    Objectives = m.Objectives ?? new Dictionary<string, int>()
+                }).ToList() ?? new List<ValNet.Objects.Contracts.ContactsFetchObj.Mission>()
+            };
+            return mapped;
+        }
         throw new Exception("Could not find Contract");
     }
+
+    // Compat: Daily ticket endpoints; return minimal safe defaults
+    public async Task RenewDailyTicket()
+    {
+        // Attempt a no-op ping to PD to keep parity; ignore failures
+        try { await RiotPdRequest("/contracts/v1/contracts/renew", Method.Post); } catch { }
+    }
+
+    public async Task<ValNet.Objects.Contracts.DailyTicketObj> GetDailyTicket()
+    {
+        try
+        {
+            var resp = await RiotPdRequest($"/contracts/v1/contracts/{_user.UserData.sub}", Method.Get);
+            // No direct mapping; return an empty ticket object
+        }
+        catch { }
+        return new ValNet.Objects.Contracts.DailyTicketObj
+        {
+            DailyRewards = new ValNet.Objects.Contracts.DailyTicketObj.DailyRewardsObj
+            {
+                Milestones = new List<ValNet.Objects.Contracts.DailyTicketObj.MilestoneObj>()
+                {
+                    new(), new(), new(), new()
+                }
+            }
+        };
+    }
 }
+
+
+

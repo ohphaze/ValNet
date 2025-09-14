@@ -1,4 +1,4 @@
-﻿using CliWrap;
+using CliWrap;
 
 using RestSharp;
 
@@ -28,6 +28,17 @@ public partial class Authentication : RequestBase
         _user = pUser;
     }
 
+    // Compat: expose auth type in expected enum space
+    public ValNet.Enums.EAuthType CurrentAuthType => _user.AuthType switch
+    {
+        ValNet.AuthType.Cloud => ValNet.Enums.EAuthType.CLOUD,
+        ValNet.AuthType.Socket => ValNet.Enums.EAuthType.LOCAL,
+        ValNet.AuthType.Cookie => ValNet.Enums.EAuthType.COOKIE,
+        _ => ValNet.Enums.EAuthType.CLOUD
+    };
+    public ValNet.Enums.EAuthType AuthType => CurrentAuthType;
+
+
     #region Riot Authentication Urls
 
     private const string authUrl = "https://auth.riotgames.com/api/v1/authorization";
@@ -55,7 +66,7 @@ public partial class Authentication : RequestBase
     /// Authenticates with Cloud with Curl
     /// </summary>
     /// <returns></returns>
-    public async Task<AuthenticationStatus> AuthenticateWithCloudCurl()
+    public async Task<AuthenticationResult> AuthenticateWithCloudCurl()
     {
          if (_user.loginData.username == null || _user.loginData.password == null)
             throw new Exception("Username or password are empty, please retry when there are values in place.");
@@ -69,7 +80,7 @@ public partial class Authentication : RequestBase
             scope = "account openid"
         };
         var authResponse = new CurlResponse();
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i -X POST", false)
                 .Add("-H").Add("Content-Type: application/json")
@@ -95,7 +106,7 @@ public partial class Authentication : RequestBase
             remember = "true"
         };
         var loginResponse = new CurlResponse<AuthorizationJson>(_jsonOptions);
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i -X PUT", false)
                 .Add("-H").Add("Content-Type: application/json")
@@ -123,7 +134,7 @@ public partial class Authentication : RequestBase
 
         //Determine if Two Factor is needed
         if (authObj.type.Equals("multifactor"))
-            return new AuthenticationStatus
+            return new AuthenticationResult
             {
                 bIsAuthComplete = false,
                 type = "multifactor",
@@ -132,7 +143,7 @@ public partial class Authentication : RequestBase
 
         return await CompleteAuthCurl(authObj);
     }
-    public async Task AuthenticateWithCookiesCurl()
+    public async Task<AuthenticationResult> AuthenticateWithCookiesCurl()
     {
         var cookieData = new
         {
@@ -144,7 +155,7 @@ public partial class Authentication : RequestBase
         };
 
         var authResponse = new CurlResponse<AuthorizationJson>();
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i -X POST", false)
                 .Add("-H").Add("Content-Type: application/json")
@@ -196,9 +207,10 @@ public partial class Authentication : RequestBase
         GetCurrentGameVersion();
         GetRiotXmppPasToken();
         
-        _user.AuthType = AuthType.Cookie;
+        _user.AuthType = ValNet.AuthType.Cookie;
+        return new AuthenticationResult{ bIsAuthComplete = true };
     }
-    public async Task<AuthenticationStatus> AuthenticateTwoFactorCodeCurl(string code)
+    public async Task<AuthenticationResult> AuthenticateTwoFactorCodeCurl(string code)
     {
         var data = new
         {
@@ -207,7 +219,7 @@ public partial class Authentication : RequestBase
             rememberDevice = true
         };
         var authResponse = new CurlResponse<AuthorizationJson>();
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i -X PUT", false)
                 .Add("-H").Add("Content-Type: application/json")
@@ -229,7 +241,7 @@ public partial class Authentication : RequestBase
 
         var authObj = authResponse.Data;
         if (authObj.error is not null && authObj.error.Equals("multifactor_attempt_failed"))
-            return new AuthenticationStatus
+            return new AuthenticationResult
             {
                 bIsAuthComplete = false,
                 type = authObj.type,
@@ -242,7 +254,7 @@ public partial class Authentication : RequestBase
 
         throw new Exception("Unknown Error has occured.");
     }
-    public async Task<AuthenticationStatus> AuthenticateWithSocketCurl()
+    public async Task<AuthenticationResult> AuthenticateWithSocketCurl()
     {
         //Check for Lockfile
         if (ParseLockFile() == false)
@@ -283,15 +295,15 @@ public partial class Authentication : RequestBase
         _user.UserData = await GetUserDataCurl();
         await GetRiotXmppPasToken();
         GetCurrentGameVersion();
-        _user.AuthType = AuthType.Socket;
+        _user.AuthType = ValNet.AuthType.Socket;
 
-        return new AuthenticationStatus
+        return new AuthenticationResult
         {
             bIsAuthComplete = true
         };
     }
     
-    private async Task<AuthenticationStatus> CompleteAuthCurl(AuthorizationJson authObj)
+    private async Task<AuthenticationResult> CompleteAuthCurl(AuthorizationJson authObj)
     {
         if (authObj.response?.parameters?.uri is not null)
         {
@@ -315,9 +327,9 @@ public partial class Authentication : RequestBase
         _user.UserRegion = await GetUserRegion();
         GetCurrentGameVersion();
         GetRiotXmppPasToken();
-        _user.AuthType = AuthType.Cloud;
+        _user.AuthType = ValNet.AuthType.Cloud;
 
-        return new AuthenticationStatus
+        return new AuthenticationResult
         {
             bIsAuthComplete = true
         };
@@ -325,7 +337,7 @@ public partial class Authentication : RequestBase
     private async Task<string?> GetEntitlementTokenCurl()
     {
         var entitlementsTokenResponse = new CurlResponse();
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i -X POST", false)
                 .Add("-H").Add("Content-Type: application/json")
@@ -353,7 +365,7 @@ public partial class Authentication : RequestBase
     private async Task<RiotUserData?> GetUserDataCurl()
     {
         var userInfoResponse = new CurlResponse<RiotUserData>();
-        await Cli.Wrap("curl")
+        await Cli.Wrap(_user.CurlPath ?? "curl")
             .WithArguments(builder => builder
                 .Add("-i")
                 .Add("-H").Add($"User-Agent: {_entitlementsUserAgent}")
@@ -376,8 +388,10 @@ public partial class Authentication : RequestBase
     /// Authenticates with Cloud 
     /// </summary>
 
-    public async Task<AuthenticationStatus> AuthenticateWithCloud()
-    {
+public async Task<AuthenticationResult> AuthenticateWithCloud()
+{
+        if (_user.PreferCurl)
+            return await AuthenticateWithCloudCurl();
         if (_user.loginData.username == null || _user.loginData.password == null)
             throw new Exception("Username or password are empty, please retry when there are values in place.");
 
@@ -424,7 +438,7 @@ public partial class Authentication : RequestBase
 
         //Determine if Two Factor is needed
         if (authObj.type.Equals("multifactor"))
-            return new AuthenticationStatus
+            return new AuthenticationResult
             {
                 bIsAuthComplete = false,
                 type = "multifactor",
@@ -433,8 +447,10 @@ public partial class Authentication : RequestBase
 
         return await CompleteAuth(authObj);
     }
-    public async Task<AuthenticationStatus> AuthenticateTwoFactorCode(string code)
-    {
+public async Task<AuthenticationResult> AuthenticateTwoFactorCode(string code)
+{
+        if (_user.PreferCurl)
+            return await AuthenticateTwoFactorCodeCurl(code);
         var data = new
         {
             type = "multifactor",
@@ -455,7 +471,7 @@ public partial class Authentication : RequestBase
         var aString = await authResp.Content.ReadAsStringAsync();
         var authObj = JsonSerializer.Deserialize<AuthorizationJson>(aString);
         if (authObj.error is not null && authObj.error.Equals("multifactor_attempt_failed"))
-            return new AuthenticationStatus
+            return new AuthenticationResult
             {
                 bIsAuthComplete = false,
                 type = authObj.type,
@@ -469,7 +485,7 @@ public partial class Authentication : RequestBase
         throw new Exception("Unknown Error has occured.");
     }
     
-    private async Task<AuthenticationStatus> CompleteAuth(AuthorizationJson authObj)
+    private async Task<AuthenticationResult> CompleteAuth(AuthorizationJson authObj)
     {
         if (authObj.response?.parameters?.uri is not null)
         {
@@ -496,15 +512,15 @@ public partial class Authentication : RequestBase
         _user.UserRegion = await GetUserRegion();
         GetCurrentGameVersion();
         await GetRiotXmppPasToken();
-        _user.AuthType = AuthType.Cloud;
+        _user.AuthType = ValNet.AuthType.Cloud;
 
-        return new AuthenticationStatus
+        return new AuthenticationResult
         {
             bIsAuthComplete = true
         };
     }
     
-    public async Task<AuthenticationStatus> AuthenticateWithSocket()
+    public async Task<AuthenticationResult> AuthenticateWithSocket()
     {
         //Check for Lockfile
         if (ParseLockFile() == false)
@@ -545,9 +561,9 @@ public partial class Authentication : RequestBase
         _user.UserData = await GetUserData();
         await GetRiotXmppPasToken();
         GetCurrentGameVersion();
-        _user.AuthType = AuthType.Socket;
+        _user.AuthType = ValNet.AuthType.Socket;
 
-        return new AuthenticationStatus
+        return new AuthenticationResult
         {
             bIsAuthComplete = true
         };
@@ -616,7 +632,7 @@ public partial class Authentication : RequestBase
         GetCurrentGameVersion();
         await GetRiotXmppPasToken();
         
-        _user.AuthType = AuthType.Cookie;
+        _user.AuthType = ValNet.AuthType.Cookie;
     }
 
     
@@ -628,6 +644,12 @@ public partial class Authentication : RequestBase
     {
         _user.tokenData.access = Regex.Match(tokenURL, @"access_token=(.+?)&scope=").Groups[1].Value;
         _user.tokenData.idToken = Regex.Match(tokenURL, @"id_token=(.+?)&token_type=").Groups[1].Value;
+    }
+
+    // Compat method expected by Assist for lockfile-based auth
+    public async Task<ValNet.Objects.Authentication.AuthenticationResult> AuthenticateWithLocal()
+    {
+        return await AuthenticateWithSocket();
     }
 
     private async Task<string?> GetEntitlementToken()
@@ -820,3 +842,6 @@ public partial class Authentication : RequestBase
     }
     #endregion
 }
+
+
+

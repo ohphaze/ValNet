@@ -7,6 +7,8 @@ public class ValUserStore
 {
     [JsonPropertyName("FeaturedBundle")] public FeaturedBundleObj FeaturedBundle { get; set; } = new();
     [JsonPropertyName("SkinsPanelLayout")] public SkinsPanelLayoutObj SkinsPanelLayout { get; set; } = new();
+    // Optional Night Market data presence
+    [JsonPropertyName("BonusStore")] public object? BonusStore { get; set; }
 
     public class FeaturedBundleObj
     {
@@ -30,4 +32,3 @@ public class ValUserStore
         [JsonPropertyName("SingleItemOffers")] public List<string> SingleItemOffers { get; set; } = new();
     }
 }
-

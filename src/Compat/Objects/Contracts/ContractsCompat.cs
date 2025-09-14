@@ -4,7 +4,7 @@ namespace ValNet.Objects.Contracts;
 
 public class ContactsFetchObj
 {
-    [JsonPropertyName("Missions")] public List<MissionObj> Missions { get; set; } = new();
+    [JsonPropertyName("Missions")] public List<Mission> Missions { get; set; } = new();
 
     public class MissionObj
     {
@@ -12,6 +12,9 @@ public class ContactsFetchObj
         [JsonPropertyName("ExpirationTime")] public DateTime ExpirationTime { get; set; }
         [JsonPropertyName("Objectives")] public Dictionary<string, int> Objectives { get; set; } = new();
     }
+
+    // Alias to match consumers expecting Mission type
+    public class Mission : MissionObj { }
 }
 
 public class DailyTicketObj
@@ -29,4 +32,3 @@ public class DailyTicketObj
         [JsonPropertyName("Progress")] public int Progress { get; set; }
     }
 }
-

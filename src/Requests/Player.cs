@@ -118,4 +118,26 @@ public class Player : RequestBase
         return JsonSerializer.Deserialize<PlayerProgressionObj>(resp.content.ToString());
     }
 
+    // Overload used by Assist to fetch another user's MMR
+    public async Task<ValNet.Objects.Player.PlayerMMR?> GetPlayerMmr(string puuid)
+    {
+        var resp = await RiotPdRequest($"/mmr/v1/players/{puuid}", Method.Get);
+
+        if (!resp.isSucc)
+            throw new Exception("Failed to get Player MMR");
+
+        return JsonSerializer.Deserialize<ValNet.Objects.Player.PlayerMMR>(resp.content.ToString());
+    }
+
+    // Compat: match details endpoint used by Assist
+    public async Task<MatchDetailsObj?> GetMatchDetails(string matchId)
+    {
+        if (string.IsNullOrWhiteSpace(matchId))
+            throw new ArgumentException("matchId is required", nameof(matchId));
+        var resp = await RiotPdRequest($"/match-details/v1/matches/{matchId}", Method.Get);
+        if (!resp.isSucc)
+            throw new Exception("Failed to get match details");
+        return JsonSerializer.Deserialize<MatchDetailsObj>(resp.content.ToString());
+    }
+
 }
